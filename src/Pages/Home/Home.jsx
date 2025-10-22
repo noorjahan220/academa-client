@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 // Importing necessary icons
-import { FaSearch, FaBuilding, FaCalendarAlt, FaFlask, FaFutbol, FaChevronRight, FaFileAlt, FaQuoteLeft } from 'react-icons/fa';
+import { FaSearch, FaBuilding, FaCalendarAlt, FaFlask, FaStar, FaChevronRight, FaFileAlt, FaQuoteLeft } from 'react-icons/fa';
 
 // Dummy data for sections not yet in backend
 const galleryImages = [
@@ -15,10 +15,7 @@ const researchPapers = [
     { title: 'The Impact of AI on Modern Education Systems', link: '#', author: 'Dr. Jane Doe, Northwood Tech' },
     { title: 'Sustainable Urban Farming: A Case Study', link: '#', author: 'John Smith, Evergreen State' },
 ];
-const reviews = [
-    { id: 1, name: 'Alex Johnson', college: 'Maplewood University', avatar: 'https://randomuser.me/api/portraits/men/32.jpg', review: 'The research opportunities are unparalleled. The professors are incredibly supportive!' },
-    { id: 2, name: 'Maria Garcia', college: 'Northwood Technical Institute', avatar: 'https://randomuser.me/api/portraits/women/44.jpg', review: 'I loved my time at Northwood. The hands-on approach to learning prepared me for my career.' },
-];
+// REMOVED: Dummy reviews array is no longer needed.
 
 const Home = () => {
     const [allColleges, setAllColleges] = useState([]);
@@ -26,18 +23,36 @@ const Home = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
+    // --- NEW: State for dynamic reviews ---
+    const [reviews, setReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(true);
+
+    // useEffect for fetching colleges
     useEffect(() => {
         fetch('http://localhost:5000/colleges')
             .then(res => res.json())
             .then(data => {
                 setAllColleges(data);
-                // When there's no search, show all colleges, not just the first 3
-                setFilteredColleges(data); 
+                setFilteredColleges(data.slice(0, 3)); 
                 setLoading(false);
             })
             .catch(error => {
                 console.error("Failed to fetch college data:", error);
                 setLoading(false);
+            });
+    }, []);
+
+    // --- NEW: useEffect for fetching reviews ---
+    useEffect(() => {
+        fetch('http://localhost:5000/reviews')
+            .then(res => res.json())
+            .then(data => {
+                setReviews(data);
+                setReviewsLoading(false);
+            })
+            .catch(error => {
+                console.error("Failed to fetch reviews:", error);
+                setReviewsLoading(false);
             });
     }, []);
 
@@ -51,67 +66,80 @@ const Home = () => {
             );
             setFilteredColleges(results);
         } else {
-            // If search is empty, show all colleges again
-            setFilteredColleges(allColleges);
+            setFilteredColleges(allColleges.slice(0, 3));
         }
     };
 
     return (
         <main className="bg-gray-50">
-            {/* Search Section */}
+            {/* ===== 1. Search Section ===== */}
             <section className="bg-white pt-10 pb-16">
-                 {/* ... (search input code is correct) ... */}
-                 <div className="mt-8 max-w-2xl mx-auto">
-                    <div className="relative bg-white rounded-lg shadow-md p-1 border-l-4 border-green-500">
-                        <div className="flex items-center">
-                            <input
-                                type="text"
-                                placeholder="Search by college name..."
-                                className="w-full py-3 pl-4 text-gray-700 bg-transparent focus:outline-none"
-                                value={searchTerm}
-                                onChange={handleSearch}
-                            />
-                            <button
-                                type="button"
-                                className="bg-green-500 text-white p-4 rounded-md hover:bg-green-600 transition-colors"
-                                aria-label="Search"
-                            >
-                                <FaSearch />
-                            </button>
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                    <h1 className="text-4xl md:text-5xl font-bold text-[#0A5275]">Find Your Future College</h1>
+                    <p className="mt-4 text-lg text-gray-600">
+                        Search our full directory of institutions to start your journey.
+                    </p>
+                    <div className="mt-8 max-w-2xl mx-auto">
+                        <div className="relative bg-white rounded-lg shadow-md p-1 border-l-4 border-green-500">
+                            <div className="flex items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Search by college name..."
+                                    className="w-full py-3 pl-4 text-gray-700 bg-transparent focus:outline-none"
+                                    value={searchTerm}
+                                    onChange={handleSearch}
+                                />
+                                <button type="button" className="bg-green-500 text-white p-4 rounded-md hover:bg-green-600 transition-colors" aria-label="Search">
+                                    <FaSearch />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* College Cards Section - CORRECTED */}
+            {/* ===== 2. College Cards Section ===== */}
             <section className="py-20 px-4">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-3xl font-bold text-center text-[#0A5275] mb-12">
-                        {searchTerm ? 'Search Results' : 'Our Colleges'}
+                        {/* MODIFIED: More descriptive title for the initial view */}
+                        {searchTerm ? 'Search Results' : 'Featured Colleges'}
                     </h2>
                     {loading ? (
                         <p className="text-center text-gray-500 text-xl">Loading colleges...</p>
                     ) : filteredColleges.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {/* This is the only mapping block needed */}
                             {filteredColleges.map((college) => (
-                                <div key={college._id} className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300">
+                                <div key={college._id} className="bg-white rounded-lg shadow-lg overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 flex flex-col">
                                     <img src={college.image} alt={college.name} className="w-full h-48 object-cover" />
-                                    <div className="p-6">
-                                        <h3 className="text-2xl font-bold text-gray-800 mb-2">{college.name}</h3>
+                                    
+                                    <div className="p-6 flex-grow flex flex-col">
+                                        <h3 className="text-2xl font-bold text-gray-800 mb-3">{college.name}</h3>
+                                        
+                                        <div className="grid grid-cols-2 gap-4 mb-4 text-gray-700">
+                                            <div className="flex items-center gap-2">
+                                                <FaStar className="text-yellow-500" />
+                                                <span className="font-semibold">{college.rating || 'N/A'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <FaFlask className="text-blue-500" />
+                                                <span className="font-semibold">{college.researchWorks?.length || 0} Researches</span>
+                                            </div>
+                                        </div>
+
                                         <p className="flex items-center gap-2 text-gray-600 mb-4">
                                             <FaCalendarAlt className="text-green-500" />
                                             <span className="font-semibold">Admission:</span> {college.admissionDates}
                                         </p>
-                                        <div className="mb-4">
-                                            {/* ... (highlights code is fine) ... */}
+                                        
+                                        <div className="mt-auto">
+                                            <Link
+                                                to={`/college/${college._id}`}
+                                                className="w-full mt-4 inline-flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none"
+                                            >
+                                                View Details <FaChevronRight size="0.8em" />
+                                            </Link>
                                         </div>
-                                        <Link
-                                            to={`/college/${college._id}`} // This uses the correct MongoDB ID
-                                            className="w-full mt-6 inline-flex justify-center items-center gap-2 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none"
-                                        >
-                                            View Details <FaChevronRight size="0.8em" />
-                                        </Link>
                                     </div>
                                 </div>
                             ))}
@@ -165,25 +193,34 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* ===== 5. Review Section ===== */}
-            <section className="py-20 px-4 bg-white">
+        <section className="py-20 px-4 bg-white">
                 <div className="max-w-7xl mx-auto">
                     <h2 className="text-3xl font-bold text-center text-[#0A5275] mb-12">What Our Alumni Say</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {reviews.map((review) => (
-                            <div key={review.id} className="bg-gray-50 p-8 rounded-lg shadow-lg relative">
-                                <FaQuoteLeft className="absolute top-4 left-4 text-5xl text-gray-200" />
-                                <p className="relative text-gray-600 italic text-lg mb-6">"{review.review}"</p>
-                                <div className="flex items-center">
-                                    <img src={review.avatar} alt={review.name} className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-green-500" />
-                                    <div>
-                                        <p className="font-bold text-gray-800">{review.name}</p>
-                                        <p className="text-sm text-gray-500">{review.college}</p>
+                    {reviewsLoading ? (
+                        <p className="text-center text-gray-500">Loading reviews...</p>
+                    ) : reviews.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {reviews.map((review) => (
+                                <div key={review._id} className="bg-gray-50 p-8 rounded-lg shadow-lg relative">
+                                    <FaQuoteLeft className="absolute top-4 left-4 text-5xl text-gray-200" />
+                                    <p className="relative text-gray-600 italic text-lg mb-6">"{review.reviewText}"</p>
+                                    <div className="flex items-center">
+                                        <img 
+                                            src={review.reviewerImage || 'https://i.ibb.co/6HFLcN8/default-avatar.png'} 
+                                            alt={review.reviewerName} 
+                                            className="w-12 h-12 rounded-full object-cover mr-4 border-2 border-green-500" 
+                                        />
+                                        <div>
+                                            <p className="font-bold text-gray-800">{review.reviewerName}</p>
+                                            <p className="text-sm text-gray-500">{review.collegeName}</p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center text-gray-500">No reviews have been submitted yet.</p>
+                    )}
                 </div>
             </section>
         </main>
