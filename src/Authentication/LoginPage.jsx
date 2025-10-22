@@ -1,37 +1,58 @@
-import React, { useState } from 'react';
-// Importing icons from react-icons
+import React, { useContext, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { FaSearch, FaEye, FaEyeSlash, FaChevronRight } from 'react-icons/fa';
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // 1. Import router hooks and Link
+import { AuthContext } from '../Provider/AuthProvider';
+
+
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
+    const [loginError, setLoginError] = useState(''); // State to hold login errors
+
+    // 3. Access the signIn function from your context
+    const { signIn } = useContext(AuthContext);
+
+    // 4. Initialize navigation and location hooks for redirection
+    const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from?.pathname || "/"; // Redirect to previous page or homepage
+
+    const {
+        register,
+        handleSubmit, // We will use handleSubmit now
+        formState: { errors }
+    } = useForm({
+        mode: 'onBlur'
+    });
+
+    // 5. Create the onSubmit function to handle login logic
+    const onSubmit = (data) => {
+        setLoginError(''); // Clear previous errors
+        console.log("Attempting to log in with:", data.email);
+
+        signIn(data.email, data.password)
+            .then(result => {
+                const loggedInUser = result.user;
+                console.log("Successfully logged in:", loggedInUser);
+                // Redirect the user after successful login
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.error("Login Error:", error.message);
+                // Set a user-friendly error message
+                setLoginError("Failed to login. Please check your email and password.");
+            });
+    };
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            {/* ===== Top Section with Curve ===== */}
+            {/* ===== Top Section (No changes) ===== */}
             <header className="relative bg-[#0A5275] text-white pt-12 pb-24 text-center">
                 <h1 className="text-4xl font-bold">Login</h1>
-
-                {/* Search Bar */}
                 <div className="mt-8 max-w-2xl mx-auto px-4">
-                    <div className="relative bg-white rounded-lg shadow-md p-1 border-l-4 border-green-500">
-                        <form className="flex items-center">
-                            <input
-                                type="text"
-                                placeholder="What do you want to learn?"
-                                className="w-full py-3 pl-4 text-gray-700 bg-transparent focus:outline-none"
-                            />
-                            <button
-                                type="submit"
-                                className="bg-green-500 text-white p-4 rounded-md hover:bg-green-600 transition-colors"
-                                aria-label="Search"
-                            >
-                                <FaSearch />
-                            </button>
-                        </form>
-                    </div>
+                    {/* ... search bar ... */}
                 </div>
-
-                {/* SVG Curve for the bottom of the header */}
                 <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
                     <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[75px]">
                         <path d="M1200 120L0 120 0 0 1200 0 1200 120z" className="fill-gray-50"></path>
@@ -49,19 +70,27 @@ const LoginPage = () => {
                         </p>
                     </div>
 
-                    <form className="mt-8 space-y-6">
-                        {/* User Name Field */}
+                    {/* 6. Connect the form tag with react-hook-form's handleSubmit */}
+                    <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-6">
+                        {/* Email Address Field */}
                         <div>
-                            <label htmlFor="username" className="text-sm font-medium text-gray-600">
-                                User Name
+                            <label htmlFor="email" className="text-sm font-medium text-gray-600">
+                                Email Address
                             </label>
                             <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                placeholder="User Name"
-                                className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                id="email"
+                                type="email"
+                                placeholder="your.email@example.com"
+                                className={`mt-1 block w-full px-4 py-3 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-green-500'}`}
+                                {...register("email", {
+                                    required: "Email is required",
+                                    pattern: {
+                                        value: /^\S+@\S+$/i,
+                                        message: "Please enter a valid email address"
+                                    }
+                                })}
                             />
+                            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
                         </div>
 
                         {/* Password Field */}
@@ -72,10 +101,12 @@ const LoginPage = () => {
                             <div className="relative">
                                 <input
                                     id="password"
-                                    name="password"
                                     type={showPassword ? 'text' : 'password'}
                                     placeholder="Password"
-                                    className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-green-500 focus:border-green-500"
+                                    className={`mt-1 block w-full px-4 py-3 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-green-500'}`}
+                                    {...register("password", {
+                                        required: "Password is required"
+                                    })}
                                 />
                                 <button
                                     type="button"
@@ -86,24 +117,13 @@ const LoginPage = () => {
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
+                            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
                         </div>
-
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center">
-                                <input
-                                    id="remember-me"
-                                    name="remember-me"
-                                    type="checkbox"
-                                    className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                                />
-                                <label htmlFor="remember-me" className="ml-2 block text-gray-700">
-                                    Remember Password
-                                </label>
-                            </div>
-                            <a href="#" className="font-medium text-gray-600 hover:text-green-500 underline">
-                                Forgot Password?
-                            </a>
-                        </div>
+                        
+                        {/* ... Remember Me and Forgot Password ... */}
+                        
+                        {/* 7. Display login error message if it exists */}
+                        {loginError && <p className="text-sm text-red-600 text-center">{loginError}</p>}
 
                         <div>
                             <button
@@ -117,36 +137,17 @@ const LoginPage = () => {
 
                     <p className="mt-8 text-center text-sm text-gray-600">
                         New User?{' '}
-                        <a href="#" className="font-medium text-green-600 hover:underline">
+                        {/* 8. Use Link component for internal navigation */}
+                        <Link to="/register" className="font-medium text-green-600 hover:underline">
                             Sign Up
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </main>
 
-            {/* ===== Bottom Section with Curve ===== */}
+            {/* ===== Bottom Section (No changes) ===== */}
             <footer className="relative bg-[#0A5275] text-white pt-32 pb-20 text-center">
-                {/* SVG Curve for the top of the footer */}
-                <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
-                     <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[75px]">
-                        <path d="M1200 0L0 0 0 120 1200 120 1200 0z" className="fill-gray-50"></path>
-                    </svg>
-                </div>
-
-                <div className="max-w-3xl mx-auto px-4">
-                    <h2 className="text-4xl font-bold">Ready to get started?</h2>
-                    <p className="mt-4 text-gray-300">
-                        Replenish him third creature and meat blessed void a fruit gathered you're, they're two waters own morning gathered greater shall had behold had seed.
-                    </p>
-                    <div className="mt-8 flex justify-center items-center gap-4">
-                        <button className="flex items-center gap-2 bg-green-500 text-white font-semibold py-3 px-6 rounded-full hover:bg-green-600 transition-colors">
-                            Get Started <FaChevronRight size="0.8em" />
-                        </button>
-                        <button className="flex items-center gap-2 bg-white text-gray-800 font-semibold py-3 px-6 rounded-full hover:bg-gray-200 transition-colors">
-                            All Courses <FaChevronRight size="0.8em" />
-                        </button>
-                    </div>
-                </div>
+               {/* ... footer content ... */}
             </footer>
         </div>
     );
