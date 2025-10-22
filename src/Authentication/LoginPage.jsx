@@ -1,57 +1,101 @@
 import React, { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaSearch, FaEye, FaEyeSlash, FaChevronRight } from 'react-icons/fa';
-import { Link, useLocation, useNavigate } from 'react-router-dom'; // 1. Import router hooks and Link
+import { FaSearch, FaEye, FaEyeSlash, FaChevronRight, FaGoogle, FaFacebook } from 'react-icons/fa';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../Provider/AuthProvider';
-
 
 
 const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [loginError, setLoginError] = useState(''); // State to hold login errors
+    const [loginError, setLoginError] = useState('');
 
-    // 3. Access the signIn function from your context
-    const { signIn } = useContext(AuthContext);
-
-    // 4. Initialize navigation and location hooks for redirection
+    const { signIn, signInWithGoogle, resetPassword,  signInWithFacebook } = useContext(AuthContext);
     const navigate = useNavigate();
     const location = useLocation();
-    const from = location.state?.from?.pathname || "/"; // Redirect to previous page or homepage
+    const from = location.state?.from?.pathname || "/";
 
     const {
         register,
-        handleSubmit, // We will use handleSubmit now
+        handleSubmit,
         formState: { errors }
     } = useForm({
         mode: 'onBlur'
     });
 
-    // 5. Create the onSubmit function to handle login logic
     const onSubmit = (data) => {
-        setLoginError(''); // Clear previous errors
-        console.log("Attempting to log in with:", data.email);
-
+        setLoginError('');
         signIn(data.email, data.password)
             .then(result => {
                 const loggedInUser = result.user;
                 console.log("Successfully logged in:", loggedInUser);
-                // Redirect the user after successful login
                 navigate(from, { replace: true });
             })
             .catch(error => {
                 console.error("Login Error:", error.message);
-                // Set a user-friendly error message
                 setLoginError("Failed to login. Please check your email and password.");
             });
     };
 
+    const handleGoogleSignIn = () => {
+        signInWithGoogle()
+            .then(result => {
+                console.log('Logged in with Google:', result.user);
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.error(error);
+                setLoginError(error.message);
+            });
+    };
+
+    const handleFacebookSignIn = () => {
+        signInWithFacebook()
+            .then(result => {
+                console.log('Logged in with Facebook:', result.user);
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.error(error);
+                setLoginError(error.message);
+            });
+    };
+const handlePasswordReset = () => {
+        const email = prompt("Please enter your email address to reset your password:");
+        if (email) {
+            resetPassword(email)
+                .then(() => {
+                    alert('Password reset email sent! Please check your inbox.');
+                })
+                .catch((error) => {
+                    console.error("Password Reset Error:", error);
+                    setLoginError(error.message);
+                    alert('Error sending reset email. Please check the email address and try again.');
+                });
+        } else {
+            alert("Please enter a valid email address.");
+        }
+    };
     return (
         <div className="bg-gray-50 min-h-screen">
-            {/* ===== Top Section (No changes) ===== */}
             <header className="relative bg-[#0A5275] text-white pt-12 pb-24 text-center">
                 <h1 className="text-4xl font-bold">Login</h1>
                 <div className="mt-8 max-w-2xl mx-auto px-4">
-                    {/* ... search bar ... */}
+                    <div className="relative bg-white rounded-lg shadow-md p-1 border-l-4 border-green-500">
+                        <form className="flex items-center">
+                            <input
+                                type="text"
+                                placeholder="What do you want to learn?"
+                                className="w-full py-3 pl-4 text-gray-700 bg-transparent focus:outline-none"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-green-500 text-white p-4 rounded-md hover:bg-green-600 transition-colors"
+                                aria-label="Search"
+                            >
+                                <FaSearch />
+                            </button>
+                        </form>
+                    </div>
                 </div>
                 <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
                     <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[75px]">
@@ -60,7 +104,6 @@ const LoginPage = () => {
                 </div>
             </header>
 
-            {/* ===== Main Content - Login Form ===== */}
             <main className="py-16 px-4">
                 <div className="bg-white max-w-md mx-auto rounded-lg shadow-lg p-8">
                     <div className="text-center">
@@ -70,9 +113,7 @@ const LoginPage = () => {
                         </p>
                     </div>
 
-                    {/* 6. Connect the form tag with react-hook-form's handleSubmit */}
                     <form onSubmit={handleSubmit(onSubmit)} className="mt-8 flex flex-col gap-6">
-                        {/* Email Address Field */}
                         <div>
                             <label htmlFor="email" className="text-sm font-medium text-gray-600">
                                 Email Address
@@ -93,7 +134,6 @@ const LoginPage = () => {
                             {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
                         </div>
 
-                        {/* Password Field */}
                         <div>
                             <label htmlFor="password" className="text-sm font-medium text-gray-600">
                                 Password
@@ -108,6 +148,15 @@ const LoginPage = () => {
                                         required: "Password is required"
                                     })}
                                 />
+                                 <div className="flex items-center justify-end">
+                            <button
+                                type="button"
+                                onClick={handlePasswordReset}
+                                className="text-sm font-medium text-green-600 hover:underline focus:outline-none"
+                            >
+                                Forgot Password?
+                            </button>
+                        </div>
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
@@ -120,9 +169,6 @@ const LoginPage = () => {
                             {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
                         </div>
                         
-                        {/* ... Remember Me and Forgot Password ... */}
-                        
-                        {/* 7. Display login error message if it exists */}
                         {loginError && <p className="text-sm text-red-600 text-center">{loginError}</p>}
 
                         <div>
@@ -135,9 +181,23 @@ const LoginPage = () => {
                         </div>
                     </form>
 
+                    <div className="my-6 flex items-center">
+                        <div className="flex-grow border-t border-gray-300"></div>
+                        <span className="flex-shrink mx-4 text-gray-500">Or continue with</span>
+                        <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <button onClick={handleGoogleSignIn} type="button" className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <FaGoogle className="text-red-500" /> Google
+                        </button>
+                        <button onClick={handleFacebookSignIn} type="button" className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <FaFacebook className="text-blue-600" /> Facebook
+                        </button>
+                    </div>
+
                     <p className="mt-8 text-center text-sm text-gray-600">
                         New User?{' '}
-                        {/* 8. Use Link component for internal navigation */}
                         <Link to="/register" className="font-medium text-green-600 hover:underline">
                             Sign Up
                         </Link>
@@ -145,9 +205,21 @@ const LoginPage = () => {
                 </div>
             </main>
 
-            {/* ===== Bottom Section (No changes) ===== */}
             <footer className="relative bg-[#0A5275] text-white pt-32 pb-20 text-center">
-               {/* ... footer content ... */}
+               <div className="max-w-3xl mx-auto px-4">
+                    <h2 className="text-4xl font-bold">Ready to get started?</h2>
+                    <p className="mt-4 text-gray-300">
+                        Replenish him third creature and meat blessed void a fruit gathered you're, they're two waters own morning gathered greater shall had behold had seed.
+                    </p>
+                    <div className="mt-8 flex justify-center items-center gap-4">
+                        <button className="flex items-center gap-2 bg-green-500 text-white font-semibold py-3 px-6 rounded-full hover:bg-green-600 transition-colors">
+                            Get Started <FaChevronRight size="0.8em" />
+                        </button>
+                        <button className="flex items-center gap-2 bg-white text-gray-800 font-semibold py-3 px-6 rounded-full hover:bg-gray-200 transition-colors">
+                            All Courses <FaChevronRight size="0.8em" />
+                        </button>
+                    </div>
+                </div>
             </footer>
         </div>
     );

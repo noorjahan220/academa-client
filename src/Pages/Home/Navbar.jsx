@@ -1,10 +1,8 @@
 import React, { useState, useContext } from "react";
-
 import { Link } from "react-router-dom";
 
 // React Icons
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { TbLogout2 } from "react-icons/tb";
+import { IoIosArrowDown } from "react-icons/io";
 import { CiMenuFries } from "react-icons/ci";
 import { MdOutlineKeyboardArrowRight } from "react-icons/md";
 
@@ -13,17 +11,15 @@ import logo from "../../../public/logo.png"; // <-- Make sure this path is corre
 import { AuthContext } from "../../Provider/AuthProvider";
 
 const Navbar = () => {
-    // NEW: Get user and logOut function from our AuthContext
+    // Get user and logOut function from our AuthContext
     const { user, logOut } = useContext(AuthContext);
 
+    // State for the mobile menu (dropdown state is no longer needed)
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [isMegaMenuCollapse, setIsMegaMenuCollapse] = useState(false);
+    const [megaMenuSubItemsOpen, setMegaMenuSubItemsOpen] = useState("");
 
-   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-
-const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-const [isMegaMenuCollapse, setIsMegaMenuCollapse] = useState(false)
-const [megaMenuSubItemsOpen, setMegaMenuSubItemsOpen] = useState("")
-
-    // NEW: Handle user logout
+    // Handle user logout
     const handleLogout = () => {
         logOut()
             .then(() => {
@@ -40,7 +36,7 @@ const [megaMenuSubItemsOpen, setMegaMenuSubItemsOpen] = useState("")
         <nav className="flex items-center justify-between w-full relative">
 
             {/* Logo */}
-            <Link to="/"> {/* CHANGED: Made logo a link to home */}
+            <Link to="/">
                 <img src={logo} alt="logo" className="w-[100px]" />
             </Link>
 
@@ -52,59 +48,50 @@ const [megaMenuSubItemsOpen, setMegaMenuSubItemsOpen] = useState("")
                 <li><Link to="/my-college" className="dark:text-[#abc2d3] hover:text-[#3B9DF8] cursor-pointer">My College</Link></li>
             </ul>
 
-
-            {/* ===== User Account Section - NOW DYNAMIC ===== */}
-            <div className="flex items-center gap-[15px]">
+            {/* ===== User Account Section - MODIFIED AS REQUESTED ===== */}
+            <div className="flex items-center gap-4">
                 {user ? (
-                    // ===== Logged-In User View =====
+                    // =======================================================
+                    // ===== Logged-In User View (New Simplified Design) =====
+                    // =======================================================
                     <>
-                        <div className="flex items-center gap-[10px] cursor-pointer relative"
-                             onClick={() => setAccountMenuOpen(!accountMenuOpen)}>
-                            <div className="relative">
-                                <img
-                                    // CHANGED: Use user's photoURL or a default placeholder
-                                    src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=random`}
-                                    alt="avatar" className="w-[35px] h-[35px] rounded-full object-cover" />
-                                <div
-                                    className="w-[10px] h-[10px] rounded-full bg-green-500 absolute bottom-[0px] right-0 border-2 border-white"></div>
-                            </div>
+                        <Link to="/profile" className="flex items-center gap-2 font-semibold text-gray-600 hover:text-[#3B9DF8]">
+                            <img
+                                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName}&background=random`}
+                                alt="avatar"
+                                className="w-[35px] h-[35px] rounded-full object-cover"
+                            />
+                            <span className="sm:block hidden">{user.displayName || "User"}</span>
+                        </Link>
 
-                            <h1 className="text-[1rem] dark:text-[#abc2d3] font-[400] text-gray-600 sm:block hidden">
-                                {/* CHANGED: Display user's name */}
-                                {user.displayName || "User"}
-                            </h1>
-
-                            <div
-                                className={`${accountMenuOpen ? "translate-y-0 opacity-100 z-[1]" : "translate-y-[10px] opacity-0 z-[-1]"} bg-white w-max rounded-md absolute dark:bg-slate-800 top-[45px] right-0 p-[10px] flex flex-col transition-all duration-300 shadow-lg`}>
-
-                                <div className="border-t dark:border-slate-700 border-gray-200 pt-[5px]">
-                                    {/* CHANGED: Added onClick handler for logout */}
-                                    <p onClick={handleLogout} className="flex items-center gap-[5px] rounded-md p-[8px] pr-[45px] py-[3px] text-[1rem] dark:text-red-500 dark:hover:bg-red-500/20 text-red-500 hover:bg-red-50">
-                                        <TbLogout2 />
-                                        Logout
-                                    </p>
-                                </div>
-                            </div>
-                            <IoIosArrowUp
-                                className={`${accountMenuOpen ? "rotate-0" : "rotate-[180deg]"} transition-all duration-300 dark:text-[#abc2d3] text-gray-600 sm:block hidden`} />
-                        </div>
-                        <CiMenuFries onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-                             className="text-[1.8rem] dark:text-[#abc2d3] text-[#424242]c cursor-pointer md:hidden flex"/>
+                        <button
+                            onClick={handleLogout}
+                            className="font-semibold text-gray-600 hover:text-red-500"
+                        >
+                            Logout
+                        </button>
+                        
+                        <CiMenuFries 
+                            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                            className="text-[1.8rem] dark:text-[#abc2d3] text-[#424242] cursor-pointer md:hidden flex"
+                        />
                     </>
                 ) : (
-                    // ===== Logged-Out User View =====
-                    <div className="flex items-center gap-4">
+                    // ===================================
+                    // ===== Logged-Out User View ========
+                    // ===================================
+                    <>
                         <Link to="/login" className="font-semibold text-gray-600 hover:text-[#3B9DF8]">
                             Login
                         </Link>
                         <Link to="/register" className="bg-[#3B9DF8] text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors">
                             Register
                         </Link>
-                    </div>
+                    </>
                 )}
             </div>
 
-            {/* mobile sidebar (This can also be enhanced with user context if needed) */}
+            {/* mobile sidebar (This remains unchanged) */}
             <aside
                 className={` ${mobileSidebarOpen ? "translate-x-0 opacity-100 z-20" : "translate-x-[200px] opacity-0 z-[-1]"} md:hidden bg-white p-4 text-center absolute dark:bg-slate-700 top-[55px] right-0 sm:w-[300px] w-full rounded-md transition-all duration-300`}>
                 <ul className="items-start gap-[20px] text-[1rem] text-gray-600 flex flex-col">
@@ -115,7 +102,6 @@ const [megaMenuSubItemsOpen, setMegaMenuSubItemsOpen] = useState("")
                             className={`${isMegaMenuCollapse ? "rotate-0" : "rotate-[180deg]"} text-gray-600 group-hover:text-[#3B9DF8] dark:text-[#abc2d3] transition-all duration-300`} />
                     </li>
 
-                    {/* mobile mega menu remains the same */}
                     <div onClick={() => setMegaMenuSubItemsOpen("more_product")}
                          className={`${isMegaMenuCollapse ? "hidden" : "block"} group font-[500] ml-6`}>
                         <h4 className="text-left flex dark:text-[#abc2d3] items-center gap-[5px]">

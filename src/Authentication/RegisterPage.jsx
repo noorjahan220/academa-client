@@ -1,26 +1,21 @@
-import  { useContext, useState } from 'react';
-
-import { Link, useNavigate } from 'react-router-dom';
- 
-import { FaSearch, FaEye, FaEyeSlash, FaChevronRight } from 'react-icons/fa';
+import React, { useContext, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { FaSearch, FaEye, FaEyeSlash, FaChevronRight, FaGoogle, FaFacebook } from 'react-icons/fa';
 import { AuthContext } from '../Provider/AuthProvider';
 
 const RegisterPage = () => {
-  
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    
     const [error, setError] = useState('');
 
-    // Get auth functions from context and navigate function from router
-    const { createUser, updateUserProfile } = useContext(AuthContext);
+    const { createUser, updateUserProfile, signInWithGoogle, signInWithFacebook } = useContext(AuthContext);
     const navigate = useNavigate();
+    const location = useLocation();
+    const from = location.state?.from?.pathname || "/";
 
-    // Handle form submission for registration
     const handleSignUp = (event) => {
         event.preventDefault();
-        setError(''); // Reset error on new submission
-
+        setError('');
         const form = event.target;
         const firstName = form.firstName.value;
         const lastName = form.lastName.value;
@@ -30,7 +25,6 @@ const RegisterPage = () => {
         const confirmPassword = form.confirmPassword.value;
         const terms = form.terms.checked;
 
-        // --- Basic Validations ---
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
             return;
@@ -44,34 +38,50 @@ const RegisterPage = () => {
             return;
         }
 
-        // --- Firebase User Creation ---
         createUser(email, password)
             .then(result => {
                 const loggedUser = result.user;
                 console.log("New user created:", loggedUser);
-
-                // Update the new user's profile with their full name
-                return updateUserProfile(fullName, null); // We pass null for the photo URL
+                return updateUserProfile(fullName, null);
             })
             .then(() => {
                 console.log("User profile updated successfully.");
-                // You can add a success alert/toast here if you like
-                navigate('/'); // Redirect to the home page after successful registration
+                navigate('/');
             })
             .catch(err => {
                 console.error(err);
-                // Set a user-friendly error message
                 setError(err.message);
             });
     };
 
+    const handleGoogleSignIn = () => {
+        signInWithGoogle()
+            .then(result => {
+                console.log('Signed up with Google:', result.user);
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.error(error);
+                setError(error.message);
+            });
+    };
+
+    const handleFacebookSignIn = () => {
+        signInWithFacebook()
+            .then(result => {
+                console.log('Signed up with Facebook:', result.user);
+                navigate(from, { replace: true });
+            })
+            .catch(error => {
+                console.error(error);
+                setError(error.message);
+            });
+    };
 
     return (
         <div className="bg-gray-50 min-h-screen">
-            {/* ===== Top Section with Curve (from Login Page) ===== */}
             <header className="relative bg-[#0A5275] text-white pt-12 pb-24 text-center">
-                <h1 className="text-4xl font-bold">Register</h1> {/* Changed text to Register */}
-                {/* Search Bar */}
+                <h1 className="text-4xl font-bold">Register</h1>
                 <div className="mt-8 max-w-2xl mx-auto px-4">
                     <div className="relative bg-white rounded-lg shadow-md p-1 border-l-4 border-green-500">
                         <form className="flex items-center">
@@ -80,7 +90,6 @@ const RegisterPage = () => {
                         </form>
                     </div>
                 </div>
-                {/* SVG Curve */}
                 <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
                     <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[75px]">
                         <path d="M1200 120L0 120 0 0 1200 0 1200 120z" className="fill-gray-50"></path>
@@ -88,7 +97,6 @@ const RegisterPage = () => {
                 </div>
             </header>
 
-            {/* ===== Main Content - THE NEW REGISTRATION FORM ===== */}
             <main className="py-16 px-4">
                 <div className="bg-white max-w-4xl mx-auto rounded-lg shadow-lg p-8 space-y-8">
                     <div className="text-center">
@@ -98,10 +106,8 @@ const RegisterPage = () => {
                         </p>
                     </div>
 
-                    {/* Form now handles submission with handleSignUp */}
                     <form onSubmit={handleSignUp} className="mt-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* All inputs now have a `name` attribute */}
                             <div>
                                 <label htmlFor="firstName" className="text-sm font-medium text-gray-600">First Name</label>
                                 <input id="firstName" name="firstName" type="text" placeholder="First Name" required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" />
@@ -150,13 +156,6 @@ const RegisterPage = () => {
                             <input id="terms" name="terms" type="checkbox" className="h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500" />
                             <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">I agree the user agreement and <a href="#" className="font-bold text-green-600 hover:underline">Terms & Conditions</a></label>
                         </div>
-                        
-                        {/* Error message display */}
-                        {error && (
-                            <div className="text-center text-red-600 font-medium bg-red-100 p-3 rounded-md">
-                                {error}
-                            </div>
-                        )}
 
                         <div>
                             <button type="submit" className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-full shadow-sm text-lg font-medium text-white bg-green-500 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
@@ -165,9 +164,29 @@ const RegisterPage = () => {
                         </div>
                     </form>
 
+                    <div className="my-6 flex items-center">
+                        <div className="flex-grow border-t border-gray-300"></div>
+                        <span className="flex-shrink mx-4 text-gray-500">Or sign up with</span>
+                        <div className="flex-grow border-t border-gray-300"></div>
+                    </div>
+
+                    <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+                        <button onClick={handleGoogleSignIn} type="button" className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <FaGoogle className="text-red-500" /> Google
+                        </button>
+                        <button onClick={handleFacebookSignIn} type="button" className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <FaFacebook className="text-blue-600" /> Facebook
+                        </button>
+                    </div>
+                    
+                    {error && (
+                        <div className="text-center text-red-600 font-medium bg-red-100 p-3 rounded-md">
+                            {error}
+                        </div>
+                    )}
+
                     <p className="mt-8 text-center text-sm text-gray-600">
                         Already have an account?{' '}
-                        {/* Use Link for client-side navigation */}
                         <Link to="/login" className="font-medium text-green-600 hover:underline">
                             Sign In
                         </Link>
@@ -175,7 +194,6 @@ const RegisterPage = () => {
                 </div>
             </main>
 
-            {/* ===== Bottom Section with Curve (from Login Page) ===== */}
             <footer className="relative bg-[#0A5275] text-white pt-32 pb-20 text-center">
                 <div className="absolute top-0 left-0 w-full overflow-hidden leading-none">
                      <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="relative block w-full h-[75px]">
