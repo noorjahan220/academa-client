@@ -42,16 +42,22 @@ const logOut = () =>{
     setLoading(true);
     return signOut(auth);
 }
-const updateUserProfile = (name, photo) => {
+  const updateUserProfile = (name, photo) => {
+        // This returns a promise
         return updateProfile(auth.currentUser, {
             displayName: name,
             photoURL: photo
+        }).then(() => {
+            // After the Firebase server is successfully updated,
+            // manually update our React state to match.
+            setUser(prevUser => ({
+                ...prevUser,
+                displayName: name,
+                photoURL: photo,
+            }));
+            console.log("Local React state updated with new profile name.");
         });
     }
-     const signInWithGoogle = () => {
-        setLoading(true);
-        return signInWithPopup(auth, googleProvider);
-    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, currentUser => {
@@ -62,10 +68,15 @@ const updateUserProfile = (name, photo) => {
             unsubscribe();
         };
     }, []);
-    // This should be called from your RegisterPage.jsx
-    const saveUserToDB = (name, email, university, address) => {
-        const userData = { name, email, university, address };
-        return fetch('http://localhost:5000/users', { // Make sure URL and port are correct
+     const saveUserToDB = (name, email, university, address, phone) => {
+        const userData = {
+            name,
+            email,
+            university: university || '',
+            address: address || '',
+            phone: phone || '' 
+        };
+        return fetch('http://localhost:5000/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData)
@@ -80,6 +91,11 @@ const updateUserProfile = (name, photo) => {
             body: JSON.stringify(updatedData)
         });
     }
+     const signInWithGoogle = () => {
+        setLoading(true);
+        // This function from Firebase handles the pop-up logic
+        return signInWithPopup(auth, googleProvider);
+    };
     
     
 const authInfo = {

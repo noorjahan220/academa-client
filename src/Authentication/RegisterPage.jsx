@@ -8,7 +8,10 @@ const RegisterPage = () => {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
 
-    const { createUser, updateUserProfile, signInWithGoogle, signInWithFacebook } = useContext(AuthContext);
+    // CHANGE 1: Get the 'saveUserToDB' function from your AuthContext
+    // You must create this function in AuthProvider.jsx to make the API call.
+    const { createUser, updateUserProfile, signInWithGoogle, signInWithFacebook, saveUserToDB } = useContext(AuthContext);
+
     const navigate = useNavigate();
     const location = useLocation();
     const from = location.state?.from?.pathname || "/";
@@ -24,6 +27,9 @@ const RegisterPage = () => {
         const password = form.password.value;
         const confirmPassword = form.confirmPassword.value;
         const terms = form.terms.checked;
+        const phone = form.phone.value;
+        const university = form.university.value; // Get value from the new university field
+         const address = form.address.value; 
 
         if (password !== confirmPassword) {
             setError("Passwords do not match.");
@@ -38,14 +44,23 @@ const RegisterPage = () => {
             return;
         }
 
+        // CHANGE 2: After creating user, also save them to your database
         createUser(email, password)
             .then(result => {
                 const loggedUser = result.user;
-                console.log("New user created:", loggedUser);
-                return updateUserProfile(fullName, null);
+                console.log("New user created in Firebase:", loggedUser);
+
+                // Update Firebase profile for name
+                const firebaseProfileUpdate = updateUserProfile(fullName, null);
+
+                // Save custom user data to your MongoDB via your backend API
+                 const mongoDbSave = saveUserToDB(fullName, email, university, address, phone);
+
+                // Wait for both operations to complete before navigating
+                return Promise.all([firebaseProfileUpdate, mongoDbSave]);
             })
             .then(() => {
-                console.log("User profile updated successfully.");
+                console.log("User profile updated and data saved to database successfully.");
                 navigate('/');
             })
             .catch(err => {
@@ -57,8 +72,13 @@ const RegisterPage = () => {
     const handleGoogleSignIn = () => {
         signInWithGoogle()
             .then(result => {
-                console.log('Signed up with Google:', result.user);
-                navigate(from, { replace: true });
+                const user = result.user;
+                console.log('Signed up with Google:', user);
+                // Also save the Google user to your database
+                saveUserToDB(user.displayName, user.email, '', '', '')
+                    .then(() => {
+                        navigate(from, { replace: true });
+                    });
             })
             .catch(error => {
                 console.error(error);
@@ -69,8 +89,13 @@ const RegisterPage = () => {
     const handleFacebookSignIn = () => {
         signInWithFacebook()
             .then(result => {
-                console.log('Signed up with Facebook:', result.user);
-                navigate(from, { replace: true });
+                const user = result.user;
+                console.log('Signed up with Facebook:', user);
+                 // Also save the Facebook user to your database
+                saveUserToDB(user.displayName, user.email, '', '', '')
+                    .then(() => {
+                        navigate(from, { replace: true });
+                    });
             })
             .catch(error => {
                 console.error(error);
@@ -124,6 +149,19 @@ const RegisterPage = () => {
                                 <label htmlFor="phone" className="text-sm font-medium text-gray-600">Phone Number</label>
                                 <input id="phone" name="phone" type="tel" placeholder="+1 (800) 123-4567" className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" />
                             </div>
+
+                            {/* CHANGE 3: The University field is added here */}
+                            <div>
+                                <label htmlFor="university" className="text-sm font-medium text-gray-600">University</label>
+                                <input id="university" name="university" type="text" placeholder="e.g., Stanford University" required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" />
+                            </div>
+
+                            <div>
+                                <label htmlFor="address" className="text-sm font-medium text-gray-600">Address</label>
+                                <input id="address" name="address" type="text" placeholder="e.g., 123 Main St, Anytown" required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" />
+                            </div>
+
+
                             <div>
                                 <label htmlFor="password" className="text-sm font-medium text-gray-600">Password</label>
                                 <div className="relative">
@@ -170,7 +208,7 @@ const RegisterPage = () => {
                         <div className="flex-grow border-t border-gray-300"></div>
                     </div>
 
-                    <div className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
+                    <div className="max-w-md mx-auto flex flex-col sm-flex-row gap-4">
                         <button onClick={handleGoogleSignIn} type="button" className="w-full flex justify-center items-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm text-md font-medium text-gray-700 bg-white hover:bg-gray-50">
                             <FaGoogle className="text-red-500" /> Google
                         </button>
@@ -178,7 +216,7 @@ const RegisterPage = () => {
                             <FaFacebook className="text-blue-600" /> Facebook
                         </button>
                     </div>
-                    
+
                     {error && (
                         <div className="text-center text-red-600 font-medium bg-red-100 p-3 rounded-md">
                             {error}

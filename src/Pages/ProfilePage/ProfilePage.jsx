@@ -3,34 +3,37 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../../Provider/AuthProvider';
 
+
 const ProfilePage = () => {
     const { user, updateUserProfile, updateUserInDB } = useContext(AuthContext);
 
-    // State for user's custom data from our DB
+    // CHANGE 1: Add 'phone' to the initial state
     const [profileData, setProfileData] = useState({
         name: user?.displayName || '',
         university: '',
-        address: ''
+        address: '',
+        phone: '' // <-- Added phone field
     });
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    // Fetch user's custom data from our database when component mounts
     useEffect(() => {
         if (user?.email) {
             setIsLoading(true);
             fetch(`http://localhost:5000/users/${user.email}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (data.message) { // Handle case where user isn't in DB yet
-                        setProfileData(prev => ({...prev, name: user.displayName}));
+                    if (data.message) {
+                        setProfileData(prev => ({ ...prev, name: user.displayName }));
                     } else {
+                        // CHANGE 2: Set the phone number from the fetched data
                         setProfileData({
                             name: data.name || user.displayName,
                             university: data.university || '',
-                            address: data.address || ''
+                            address: data.address || '',
+                            phone: data.phone || '' // <-- Set phone from DB
                         });
                     }
                     setIsLoading(false);
@@ -52,10 +55,8 @@ const ProfilePage = () => {
         setError('');
         setSuccess('');
 
-        // 1. Update Firebase Profile (for display name)
+        // No change needed here, as it sends the entire 'profileData' object
         const firebaseUpdate = updateUserProfile(profileData.name, user.photoURL);
-        
-        // 2. Update our custom MongoDB database
         const dbUpdate = updateUserInDB(user.email, profileData);
 
         Promise.all([firebaseUpdate, dbUpdate])
@@ -88,7 +89,6 @@ const ProfilePage = () => {
                     />
                 </div>
                 
-                {/* --- EDITING FORM --- */}
                 {isEditing ? (
                     <div className="space-y-4">
                         <div>
@@ -98,6 +98,11 @@ const ProfilePage = () => {
                          <div>
                             <label className="block text-sm font-medium text-gray-700">Email (cannot be changed)</label>
                             <input type="email" value={user.email} disabled className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm" />
+                        </div>
+                        {/* CHANGE 3: Add an input field for the phone number */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700">Phone</label>
+                            <input type="tel" name="phone" value={profileData.phone} onChange={handleInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700">University</label>
@@ -113,10 +118,11 @@ const ProfilePage = () => {
                         </div>
                     </div>
                 ) : (
-                /* --- VIEWING MODE --- */
                     <div className="space-y-3">
                         <p><strong>Name:</strong> {profileData.name}</p>
                         <p><strong>Email:</strong> {user.email}</p>
+                        {/* CHANGE 4: Display the phone number */}
+                        <p><strong>Phone:</strong> {profileData.phone || 'Not set'}</p>
                         <p><strong>University:</strong> {profileData.university || 'Not set'}</p>
                         <p><strong>Address:</strong> {profileData.address || 'Not set'}</p>
                         <div className="pt-4">
