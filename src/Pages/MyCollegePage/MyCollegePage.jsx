@@ -17,7 +17,7 @@ const MyCollegePage = () => {
 
     useEffect(() => {
         if (!authLoading && user?.email) {
-            fetch(`http://localhost:5000/my-admissions/${user.email}`)
+            fetch(`https://academa-server.vercel.app/my-admissions/${user.email}`)
                 .then(res => res.json())
                 .then(data => {
                     setMyAdmissions(data);
@@ -63,7 +63,7 @@ const MyCollegePage = () => {
             reviewText: reviewText,
         };
 
-        fetch('http://localhost:5000/reviews', {
+        fetch('https://academa-server.vercel.app/reviews', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reviewData)

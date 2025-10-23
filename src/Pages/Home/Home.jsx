@@ -28,7 +28,7 @@ const Home = () => {
     const [reviewsLoading, setReviewsLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:5000/colleges')
+        fetch('https://academa-server.vercel.app/colleges')
             .then(res => res.json())
             .then(data => {
                 setAllColleges(data);
@@ -42,7 +42,7 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:5000/reviews')
+        fetch('https://academa-server.vercel.app/reviews')
             .then(res => res.json())
             .then(data => {
                 setReviews(data);

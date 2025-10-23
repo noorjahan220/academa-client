@@ -18,7 +18,7 @@ const CollegeDetailsPage = () => {
 
     useEffect(() => {
         // Fetch the specific college data when the component mounts or id changes
-        fetch(`http://localhost:5000/colleges/${id}`)
+        fetch(`https://academa-server.vercel.app/colleges/${id}`)
             .then(res => {
                 if (!res.ok) {
                     throw new Error('College not found');

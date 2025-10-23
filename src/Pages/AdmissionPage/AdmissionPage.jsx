@@ -10,7 +10,7 @@ const AdmissionPage = () => {
 
     // Fetch all colleges to display their names
     useEffect(() => {
-        fetch('http://localhost:5000/colleges')
+        fetch('https://academa-server.vercel.app/colleges')
             .then(res => res.json())
             .then(data => {
                 setColleges(data);
@@ -48,7 +48,7 @@ const AdmissionPage = () => {
         };
 
         // POST the data to the server
-        fetch('http://localhost:5000/admissions', {
+        fetch('https://academa-server.vercel.app/admissions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
