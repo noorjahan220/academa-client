@@ -1,7 +1,7 @@
 import { useState, useContext } from "react";
-import { Link, NavLink } from "react-router-dom"; // Use NavLink for active styling
+import { Link, NavLink } from "react-router-dom"; 
 import { CiMenuFries } from "react-icons/ci";
-import { IoClose } from "react-icons/io5"; // A better icon for closing the menu
+import { IoClose } from "react-icons/io5";
 import logo from "../../../public/logo.png";
 import { AuthContext } from "../../Provider/AuthProvider";
 
@@ -13,14 +13,14 @@ const Navbar = () => {
     logOut()
       .then(() => {
         console.log("User logged out successfully");
-        setMobileSidebarOpen(false); // Close mobile menu on logout
+        setMobileSidebarOpen(false);
       })
       .catch((error) => {
         console.error("Logout error:", error);
       });
   };
 
-  // Using a cleaner array of objects for links
+
   const navLinks = [
     { to: "/", label: "Home" },
     { to: "/colleges", label: "Colleges" },
@@ -28,21 +28,21 @@ const Navbar = () => {
     { to: "/my-college", label: "My College" },
   ];
 
-  // A reusable function to render links, which avoids code duplication
+  
   const renderNavLinks = (isMobile = false) =>
     navLinks.map((link) => (
       <li key={link.to}>
         <NavLink
           to={link.to}
-          // This function styles the link based on whether it's the active page
+         
           className={({ isActive }) =>
             `py-2 transition-colors duration-300 ${
               isActive
-                ? "text-green-600 font-semibold" // Active link is GREEN to match your theme
-                : "text-gray-600 hover:text-green-600" // Hover effect is also GREEN
+                ? "text-green-600 font-semibold" 
+                : "text-gray-600 hover:text-green-600" 
             } ${isMobile ? "block w-full text-left text-lg" : ""}`
           }
-          onClick={() => setMobileSidebarOpen(false)} // Close menu on navigation
+          onClick={() => setMobileSidebarOpen(false)}
         >
           {link.label}
         </NavLink>
@@ -50,21 +50,21 @@ const Navbar = () => {
     ));
 
   return (
-    // Main navbar container: now sticky, with a white background and shadow
+   
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between w-full bg-white shadow-sm px-4 sm:px-6">
-      {/* Logo */}
+ 
       <Link to="/" onClick={() => setMobileSidebarOpen(false)}>
         <img src={logo} alt="logo" className="w-[100px]" />
       </Link>
 
-      {/* Desktop Navigation Links */}
+     
       <ul className="hidden md:flex items-center gap-6 text-[1rem]">
         {renderNavLinks()}
       </ul>
 
-      {/* User Actions & Mobile Menu Trigger */}
+
       <div className="flex items-center gap-4">
-        {/* Desktop User Actions */}
+        
         <div className="hidden md:flex items-center gap-4">
           {user ? (
             <>
@@ -109,7 +109,7 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Menu Icon (Hamburger) */}
+        
         <button
           onClick={() => setMobileSidebarOpen(true)}
           className="md:hidden text-2xl text-gray-700"
@@ -129,7 +129,6 @@ const Navbar = () => {
     onClick={() => setMobileSidebarOpen(false)}
 />
 
-      {/* Sidebar Content: Slides in from the right */}
       <aside
         className={`fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-xl z-100 transform transition-transform duration-300 ease-in-out md:hidden ${
           mobileSidebarOpen ? "translate-x-0" : "translate-x-full"

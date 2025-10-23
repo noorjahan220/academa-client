@@ -22,7 +22,7 @@ const ProfilePage = () => {
     useEffect(() => {
         if (user?.email) {
             setIsLoading(true);
-            fetch(`https://academa-server.vercel.app/users/${user.email}`)
+            fetch(`http://localhost:5000/users/${user.email}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.message) {

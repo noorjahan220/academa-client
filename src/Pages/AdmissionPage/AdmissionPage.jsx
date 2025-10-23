@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../../Provider/AuthProvider';
-// Adjust path to your AuthProvider
 
 const AdmissionPage = () => {
     const { user } = useContext(AuthContext); // Get the logged-in user
@@ -8,9 +7,9 @@ const AdmissionPage = () => {
     const [selectedCollege, setSelectedCollege] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch all colleges to display their names
+    
     useEffect(() => {
-        fetch('https://academa-server.vercel.app/colleges')
+        fetch('http://localhost:5000/colleges')
             .then(res => res.json())
             .then(data => {
                 setColleges(data);
@@ -47,8 +46,8 @@ const AdmissionPage = () => {
             image: form.image.value, // This would be a URL to the image
         };
 
-        // POST the data to the server
-        fetch('https://academa-server.vercel.app/admissions', {
+      
+        fetch('http://localhost:5000/admissions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -60,7 +59,7 @@ const AdmissionPage = () => {
             if (data.insertedId) {
                 alert('Application submitted successfully!');
                 form.reset();
-                setSelectedCollege(null); // Go back to the college list view
+                setSelectedCollege(null); 
             }
         })
         .catch(error => {
@@ -79,7 +78,7 @@ const AdmissionPage = () => {
                     </p>
                 </div>
 
-                {/* If a college is selected, show the form. Otherwise, show the list. */}
+               
                 {selectedCollege ? (
                     <div className="bg-white p-8 rounded-lg shadow-lg">
                         <button 
@@ -90,7 +89,7 @@ const AdmissionPage = () => {
                         </button>
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* ===== THIS IS THE NEWLY ADDED BLOCK ===== */}
+                               
                                 <div className="md:col-span-2">
                                     <label htmlFor="collegeName" className="text-sm font-medium text-gray-600">Applying for College</label>
                                     <input 
@@ -102,9 +101,7 @@ const AdmissionPage = () => {
                                         className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm bg-gray-100 cursor-not-allowed" 
                                     />
                                 </div>
-                                {/* ======================================= */}
-
-                                {/* Existing Form fields */}
+                                
                                 <div>
                                     <label htmlFor="candidateName" className="text-sm font-medium text-gray-600">Candidate Name</label>
                                     <input id="candidateName" name="candidateName" type="text" defaultValue={user?.displayName || ''} required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-md shadow-sm" />

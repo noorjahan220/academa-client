@@ -15,7 +15,7 @@ const CollegesPage = () => {
 
     useEffect(() => {
         // Fetch data from your server
-        fetch('https://academa-server.vercel.app/colleges')
+        fetch('http://localhost:5000/colleges')
             .then(res => {
                 if (!res.ok) {
                     throw new Error('Failed to fetch data from server');

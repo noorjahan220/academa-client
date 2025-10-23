@@ -76,7 +76,7 @@ const logOut = () =>{
             address: address || '',
             phone: phone || '' 
         };
-        return fetch('https://academa-server.vercel.app/users', {
+        return fetch('http://localhost:5000/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(userData)
@@ -85,7 +85,7 @@ const logOut = () =>{
 
     // This will be called from your new ProfilePage.jsx
     const updateUserInDB = (email, updatedData) => {
-        return fetch(`https://academa-server.vercel.app/users/${email}`, {
+        return fetch(`http://localhost:5000/users/${email}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedData)

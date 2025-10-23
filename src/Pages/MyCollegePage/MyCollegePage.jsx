@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { FaStar } from 'react-icons/fa'; // Import the star icon
+import { FaStar } from 'react-icons/fa'; 
 import { AuthContext } from '../../Provider/AuthProvider';
 
 
@@ -8,7 +8,7 @@ const MyCollegePage = () => {
     const [myAdmissions, setMyAdmissions] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // State for the review modal
+    
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [reviewingCollege, setReviewingCollege] = useState(null);
     const [rating, setRating] = useState(0);
@@ -17,7 +17,7 @@ const MyCollegePage = () => {
 
     useEffect(() => {
         if (!authLoading && user?.email) {
-            fetch(`https://academa-server.vercel.app/my-admissions/${user.email}`)
+            fetch(`http://localhost:5000/my-admissions/${user.email}`)
                 .then(res => res.json())
                 .then(data => {
                     setMyAdmissions(data);
@@ -32,7 +32,7 @@ const MyCollegePage = () => {
         }
     }, [user, authLoading]);
 
-    // Handlers for the review modal
+    
     const handleOpenReviewModal = (admission) => {
         setReviewingCollege(admission);
         setShowReviewModal(true);
@@ -63,7 +63,7 @@ const MyCollegePage = () => {
             reviewText: reviewText,
         };
 
-        fetch('https://academa-server.vercel.app/reviews', {
+        fetch('http://localhost:5000/reviews', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(reviewData)
@@ -83,7 +83,7 @@ const MyCollegePage = () => {
         });
     };
 
-    // RENDER LOGIC
+  
     if (loading || authLoading) {
         return <div className="text-center py-40 text-2xl font-bold text-[#0A5275]">Loading Your Applications...</div>;
     }
@@ -113,7 +113,7 @@ const MyCollegePage = () => {
                                                 Applying for: <span className="font-semibold">{admission.subject}</span>
                                             </p>
                                             <hr className="my-4" />
-                                            {/* ===== THIS IS THE UPDATED BLOCK ===== */}
+                                           
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-gray-700">
                                                 <p><strong>Name:</strong> {admission.candidateName}</p>
                                                 <p><strong>Email:</strong> {admission.candidateEmail}</p>
@@ -121,10 +121,10 @@ const MyCollegePage = () => {
                                                 <p><strong>Date of Birth:</strong> {admission.dateOfBirth}</p>
                                                 <p className="sm:col-span-2"><strong>Address:</strong> {admission.address}</p>
                                             </div>
-                                            {/* ======================================= */}
+                                            
                                         </div>
                                     </div>
-                                    {/* --- "Add Review" Button --- */}
+                                   
                                     <div className="text-right mt-6">
                                         <button onClick={() => handleOpenReviewModal(admission)} className="bg-green-500 text-white font-semibold py-2 px-5 rounded-md hover:bg-green-600 transition-colors">
                                             Add a Review
@@ -141,7 +141,7 @@ const MyCollegePage = () => {
                 </div>
             </div>
 
-            {/* --- Review Modal --- */}
+           
             {showReviewModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg">
